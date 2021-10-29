@@ -1,11 +1,17 @@
 package website.loyaltypoints.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import website.WebsiteBackendApplication;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class CourseManager {
 
     private final Map<String, Course> mapCourses;
+
+    private static final Logger logger = LoggerFactory.getLogger(CourseManager.class);
 
     public CourseManager() {
         mapCourses = new HashMap<String, Course>();
@@ -17,6 +23,8 @@ public class CourseManager {
     }
 
     public Course getCourse(String codigoCurso) {
+
+        logger.debug("Requesting course: " + codigoCurso);
         return mapCourses.get(codigoCurso);
     }
 

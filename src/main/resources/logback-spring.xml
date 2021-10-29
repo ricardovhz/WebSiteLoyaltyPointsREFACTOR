@@ -26,9 +26,16 @@
 		<appender-ref ref="File-Appender" />
 	</root>
 
-	<!-- Log everything at the TRACE level -->
-	<logger name="com.workingagile.backend" level="TRACE" additivity="false">
+	<logger name="website" level="DEBUG" additivity="false">
 		<appender-ref ref="Console" />
 		<appender-ref ref="File-Appender" />
 	</logger>
+
+	<logger name="org.h2" level="TRACE" additivity="false">
+		<appender-ref ref="Console" />
+		<appender-ref ref="File-Appender" />
+	</logger>
+
+
+
 </configuration>

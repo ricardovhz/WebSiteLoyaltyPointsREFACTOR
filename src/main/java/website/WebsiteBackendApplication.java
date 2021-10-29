@@ -19,7 +19,7 @@ public class WebsiteBackendApplication {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebsiteBackendApplication.class);
 
-	static final String internalVersion = "0.0.1";
+	static final String internalVersion = "0.0.2";
 
 	@Value("${app.version}")
 	String appVersion;
