@@ -12,6 +12,10 @@ public class Reservation {
     public Reservation(String studentName, String studentEmail) {
         this.studentName = studentName;
         this.studentEmail = studentEmail;
-        id = Long.toString(System.currentTimeMillis());
+        id = "";
+    }
+
+    public void setId(String id){
+        this.id = id;
     }
 }

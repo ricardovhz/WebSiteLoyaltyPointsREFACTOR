@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
+import website.loyaltypoints.api.CourseDTO;
 import website.loyaltypoints.api.NewReservationRequestDTO;
 import website.loyaltypoints.api.NewReservationResponseDTO;
 import website.loyaltypoints.service.Course;
@@ -25,7 +26,7 @@ public class CourseEnrollmentSteps {
 
     String studentName;
     String studentEmail;
-    Course course;
+    int courseID;
     String reservationId;
 
     @Dado("um estudante que quer participar de um curso")
@@ -40,9 +41,9 @@ public class CourseEnrollmentSteps {
         String pathCreateCourse = "/api/course/create";
         String apiCreateCourse = SERVER_ADDRESS + port + pathCreateCourse;
 
-        course = new Course("A-CSD-28-09-21", "A-CSD Setembro", "28-9-2021", vagasEmAberto);
+        CourseDTO courseDTO = new CourseDTO("A-CSD Setembro", "28-9-2021", vagasEmAberto);
 
-        restTemplate.postForObject(apiCreateCourse, course, Course.class);
+        courseID = restTemplate.postForObject(apiCreateCourse, courseDTO, Integer.class);
     }
 
     @Quando("o estudante reserva sua vaga")
@@ -51,7 +52,7 @@ public class CourseEnrollmentSteps {
         String pathCourseReserve = "/api/course/reserve";
         String apiCourseReserve = SERVER_ADDRESS + port + pathCourseReserve;
 
-        NewReservationRequestDTO reservationDTO = new NewReservationRequestDTO(course.getCourseId(), studentName, studentEmail);
+        NewReservationRequestDTO reservationDTO = new NewReservationRequestDTO(courseID, studentName, studentEmail);
 
         NewReservationResponseDTO responseDTO = restTemplate.postForObject(apiCourseReserve, reservationDTO, NewReservationResponseDTO.class);
         reservationId = responseDTO.reservationId;
@@ -61,10 +62,10 @@ public class CourseEnrollmentSteps {
     @Então("a vaga deveria estar marcada para esperando pagamento")
     public void a_vaga_deveria_ser_marcada_para_esperando_pagamento() {
 
-        String pathReservation = "/api/course/reservation/{courseId}/{reservationId}";
+        String pathReservation = "/api/course/reservation/{reservationId}";
         String apiReservation = SERVER_ADDRESS + port + pathReservation;
 
-        Reservation reservation = restTemplate.getForObject(apiReservation, Reservation.class, course.getCourseId(), reservationId);
+        Reservation reservation = restTemplate.getForObject(apiReservation, Reservation.class, reservationId);
 
         Assertions.assertEquals(reservationId, reservation.id);
 
@@ -76,7 +77,7 @@ public class CourseEnrollmentSteps {
         String pathGetCurso = "/api/course/{id}";
         String apiGetCurso = SERVER_ADDRESS + port + pathGetCurso;
 
-        course = restTemplate.getForObject(apiGetCurso, Course.class, course.getCourseId());
+        Course course = restTemplate.getForObject(apiGetCurso, Course.class, courseID);
 
         Assert.assertNotNull(course);
         Assertions.assertEquals(numberOfSeats, course.getNumberOfSeats());

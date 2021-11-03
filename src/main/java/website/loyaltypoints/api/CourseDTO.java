@@ -2,7 +2,6 @@ package website.loyaltypoints.api;
 
 public class CourseDTO {
 
-    public String courseId;
     public String name;
     public String date;
     public int numberOfSeats;
@@ -10,8 +9,7 @@ public class CourseDTO {
     public CourseDTO() {
     }
 
-    public CourseDTO(String courseId, String name, String date, int numberOfSeats) {
-        this.courseId = courseId;
+    public CourseDTO(String name, String date, int numberOfSeats) {
         this.name = name;
         this.date = date;
         this.numberOfSeats = numberOfSeats;

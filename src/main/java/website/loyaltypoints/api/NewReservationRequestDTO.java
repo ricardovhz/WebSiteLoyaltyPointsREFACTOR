@@ -6,11 +6,11 @@ public class NewReservationRequestDTO {
 
     public String studentName;
     public String studentEmail;
-    public String courseId;
+    public int courseId;
 
     public NewReservationRequestDTO (){}
 
-    public NewReservationRequestDTO(String courseId, String studentName, String studentEmail) {
+    public NewReservationRequestDTO(int courseId, String studentName, String studentEmail) {
         this.courseId = courseId;
         this.studentName = studentName;
         this.studentEmail = studentEmail;

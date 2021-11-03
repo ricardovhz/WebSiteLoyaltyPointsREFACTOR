@@ -21,12 +21,12 @@
 		</encoder>
 	</appender>
 
-	<root level="INFO">
+	<root level="WARN">
 		<appender-ref ref="Console" />
 		<appender-ref ref="File-Appender" />
 	</root>
 
-	<logger name="website" level="DEBUG" additivity="false">
+	<logger name="website" level="INFO" additivity="false">
 		<appender-ref ref="Console" />
 		<appender-ref ref="File-Appender" />
 	</logger>
