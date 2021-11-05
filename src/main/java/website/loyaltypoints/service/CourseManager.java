@@ -7,7 +7,7 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
-    public class CourseManager {
+public class CourseManager {
 
     private final Map<Integer, Course> mapCourses;
 
@@ -35,19 +35,19 @@ import java.util.Map;
             statement.setString(1, courseName);
             statement.setString(2, courseDate);
             statement.setInt(3, numberOfSeats);
-
+            statement.executeUpdate();
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     String responseId = String.valueOf(generatedKeys.getLong(1));
                     courseId = Integer.parseInt(responseId);
                     novoCurso.setId(courseId);
                 } else {
-                    throw new RuntimeException("Creating reservation failed, no ID obtained.");
+                    throw new RuntimeException("Creating course failed, no ID obtained.");
                 }
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Creating reservation failed, no ID obtained.", e);
+            throw new RuntimeException("Creating course failed, conection failed", e);
         }
 
         mapCourses.put(courseId, novoCurso);
@@ -59,7 +59,6 @@ import java.util.Map;
 
         Course novoCurso = new Course();
         int courseId;
-
         String sql = String.format("SELECT id, courseName, courseDate, numberOfSeats FROM TBL_COURSES WHERE id = '%s'", codigoCurso);
 
         try (
@@ -79,7 +78,7 @@ import java.util.Map;
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Creating course failed: ", e);
+            throw new RuntimeException("Getting course failed: ", e);
         }
 
         return novoCurso;
@@ -105,6 +104,7 @@ import java.util.Map;
                 statement.setString(2, emailEstudante);
                 statement.setInt(3, course.courseId);
                 statement.setString(4, String.valueOf(java.time.LocalDate.now()));
+                statement.executeUpdate();
 
                 try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
@@ -114,20 +114,32 @@ import java.util.Map;
                     }
                 }
 
+                course.createReservation(nomeEstudante, emailEstudante);
+
+
             } catch (SQLException e) {
-                throw new RuntimeException("Creating reservation failed, no ID obtained.", e);
+                throw new RuntimeException("Creating reservation failed, conection failed", e);
             }
 
-            course.createReservation(nomeEstudante, emailEstudante);
-            return reservationId;
+            try (
+                    Connection connection = DriverManager.getConnection(DB_URL, USER, PASS);
+                    Statement stmt = connection.createStatement();
+            ) {
+                String sqlUpdate = String.format("UPDATE TBL_COURSES SET numberOfSeats = '%s' WHERE ID = '%s'", course.getNumberOfSeats(), courseId);
+                stmt.executeUpdate(sqlUpdate);
+            } catch (SQLException e) {
+                throw new RuntimeException("Creating reservation failed, conection failed", e);
+            }
+
         }
-
-        // Formatar email para admin
-        // Formatar email para cliente
-
-        // Enviar email
-
+        return reservationId;
     }
+
+    // Formatar email para admin
+    // Formatar email para cliente
+
+    // Enviar email
+
 
     public int getNumberOfSeats(String courseId) {
         return mapCourses.get(courseId).getNumberOfSeats();
@@ -158,7 +170,7 @@ import java.util.Map;
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Creating reservation failed: ", e);
+            throw new RuntimeException("Getting reservation failed: ", e);
         }
         return reservation;
     }

@@ -15,7 +15,7 @@ public class CourseManagerTests {
         CourseManager courseManager = new CourseManager();
         int numeroVagas = 5;
         String nomeCurso = "A-CSD";
-        String dataInicio = "28-9-2021";
+        String dataInicio = "28-9-2025";
         int idCurso = 1;
 
         // Act
@@ -36,7 +36,7 @@ public class CourseManagerTests {
         CourseManager courseManager = new CourseManager();
         int numeroDeVagas = 5;
         String nomeCurso = "A-CSD";
-        String dataInicio = "28-9-2021";
+        String dataInicio = "28-9-2025";
         String emailEstudante = "joao@gmail.com";
         String nomeEstudante = "Rafael Melo";
         int idCurso = 1;
