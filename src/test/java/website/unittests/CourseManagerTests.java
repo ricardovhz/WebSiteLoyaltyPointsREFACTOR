@@ -2,27 +2,42 @@ package website.unittests;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.web.client.RestTemplate;
+import website.loyaltypoints.api.CourseDTO;
 import website.loyaltypoints.service.Course;
 import website.loyaltypoints.service.CourseManager;
 import website.loyaltypoints.service.Reservation;
 
 public class CourseManagerTests {
 
+    @Autowired
+    private RestTemplate restTemplate;
+
+    String port ="8080";
+
+    final static String SERVER_ADDRESS = "http://localhost:";
+    String pathGetCurso = "/api/course/{id}";
+    String apiGetCurso = SERVER_ADDRESS + port + pathGetCurso;
+
     @Test
     public void deveria_criar_um_curso_com_vagas_em_aberto() {
 
         // Arrange
-        CourseManager courseManager = new CourseManager();
         int numeroVagas = 5;
         String nomeCurso = "A-CSD";
         String dataInicio = "28-9-2025";
-        int idCurso = 1;
+        int courseID;
+        CourseDTO courseDTO = new CourseDTO("A-CSD Setembro", "28-9-2021", numeroVagas);
+        String pathCreateCourse = "/api/course/create";
+        String apiCreateCourse = SERVER_ADDRESS + port + pathCreateCourse;
 
         // Act
-        courseManager.createCourse(nomeCurso, dataInicio, numeroVagas);
+        courseID = restTemplate.postForObject(apiCreateCourse, courseDTO, Integer.class);
 
         // Assert
-        Course course = courseManager.getCourse(idCurso);
+        Course course = restTemplate.getForObject(apiGetCurso, Course.class, courseID);
         Assert.assertEquals(numeroVagas, course.getNumberOfSeats());
         Assert.assertEquals(nomeCurso, course.getCourseName());
         Assert.assertEquals(dataInicio, course.getDataInicio());
