@@ -2,6 +2,7 @@ package website;
 
 import java.text.NumberFormat;
 
+import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.PostConstruct;
 
 @Configuration
 @ComponentScan
@@ -30,6 +33,17 @@ public class WebsiteBackendApplication {
 
 	@Autowired
 	private Environment environment;
+
+	@PostConstruct
+	private void init() {
+
+		Velocity.setProperty("resource.loaders", "file");
+		Velocity.setProperty("resource.loader.file.cache", true);
+		Velocity.setProperty("resource.loader", "class");
+		Velocity.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+
+		Velocity.init();
+	}
 
 	public static void main(String[] args) {
 

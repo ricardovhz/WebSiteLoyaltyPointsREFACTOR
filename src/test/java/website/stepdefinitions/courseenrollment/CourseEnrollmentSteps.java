@@ -32,7 +32,7 @@ public class CourseEnrollmentSteps {
     @Dado("um estudante que quer participar de um curso")
     public void um_estudante_que_quer_participar_de_um_curso() {
         studentName = "João";
-        studentEmail = "Joao123@gmail.com";
+        studentEmail = "mellotario@gmail.com";
     }
 
     @Dado("o curso tem ainda {int} vagas em aberto")
@@ -72,7 +72,7 @@ public class CourseEnrollmentSteps {
     }
 
     @Então("o curso deveria ter somente {int} vagas em aberto")
-    public void o_curso_deveria_ter_somente_vagas_em_aberto(int numberOfSeats) {
+    public void o_curso_deveria_ter_somente_vagas_em_aberto(int expectedNunberOfSeats) {
 
         String pathGetCurso = "/api/course/{id}";
         String apiGetCurso = SERVER_ADDRESS + port + pathGetCurso;
@@ -80,7 +80,7 @@ public class CourseEnrollmentSteps {
         Course course = restTemplate.getForObject(apiGetCurso, Course.class, courseID);
 
         Assert.assertNotNull(course);
-        Assertions.assertEquals(numberOfSeats, course.getNumberOfSeats());
+        Assertions.assertEquals(expectedNunberOfSeats, course.getNumberOfSeats());
     }
 
 }
