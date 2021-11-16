@@ -144,7 +144,7 @@ public class CourseManager {
 
             String host = "email-ssl.com.br";
             String username = "no-reply@working-agile.com";
-            String password = "8STpm3zfzRU3BCZ!";
+            String password = "segredo!";
             String protocol = "smtps";
             int port = 465;
             String auth = "true";
