@@ -1,19 +1,25 @@
 package website.stepdefinitions.courseenrollment;
 
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
+
 import io.cucumber.java.pt.Dado;
 import io.cucumber.java.pt.Então;
 import io.cucumber.java.pt.Quando;
-import java.util.Map;
+import java.io.IOException;
+import java.util.Arrays;
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.client.RestTemplate;
 import website.loyaltypoints.api.CourseDTO;
 import website.loyaltypoints.api.NewReservationRequestDTO;
 import website.loyaltypoints.api.NewReservationResponseDTO;
-import website.loyaltypoints.email.EmailSender;
 import website.loyaltypoints.service.Course;
 import website.loyaltypoints.service.Reservation;
 
@@ -23,7 +29,7 @@ public class CourseEnrollmentSteps {
     private RestTemplate restTemplate;
 
     @Autowired
-    private EmailSender emailSender;
+    private JavaMailSender javaMailSender;
 
     @LocalServerPort
     String port;
@@ -55,9 +61,8 @@ public class CourseEnrollmentSteps {
 
     @Quando("o estudante reserva sua vaga")
     public void o_estudante_reserva_sua_vaga() {
-
-        String pathCourseReserve = "/api/course/reserve";
-        String apiCourseReserve = SERVER_ADDRESS + port + pathCourseReserve;
+       String pathCourseReserve = "/api/course/reserve";
+       String apiCourseReserve = SERVER_ADDRESS + port + pathCourseReserve;
 
         NewReservationRequestDTO reservationDTO = new NewReservationRequestDTO(courseID, studentName, studentEmail);
 
@@ -111,30 +116,62 @@ public class CourseEnrollmentSteps {
 
   @Então("email para estudante é enviado com assunto {string}")
   public void email_para_estudante_é_enviado_com_assunto(String string) {
-        Mockito.verify(emailSender)
-            .sendEmail(studentEmail, string,"/email-templates/email-reservation-reply.vm", Map.of(
-                "name", studentName,
-                "email", studentEmail,
-                "courseId", courseID
-            ));
+    verify(javaMailSender)
+        .send(
+            argThat(
+                (MimeMessage argument) -> {
+                  try {
+                    boolean d =
+                        argument.getRecipients(RecipientType.TO)[0].toString().equals(studentEmail)
+                            && argument
+                                .getFrom()[0]
+                                .toString()
+                                .equals("contato@working-agile.com")
+                            && argument.getSubject().equals(string)
+                            && argument.getContent() != null;
+                    if (d) {
+                      System.out.println(
+                          argument.getRecipients(RecipientType.TO)[0].toString()
+                              + Arrays.toString(argument.getAllRecipients())
+                              + argument.getSubject()
+                              + argument.getContent());
+                    }
+                    return d;
+                  } catch (MessagingException | IOException e) {
+                    e.printStackTrace();
+                  }
+                  return false;
+                }));
   }
 
   @Então("email de copia para admin é enviado com assunto {string}")
   public void email_de_copia_para_admin_é_enviado_com_assunto(String string) {
-      Mockito.verify(emailSender)
-          .sendEmailToAdmin(string,"/email-templates/email-reservation-copy-to-admin.vm", Map.of(
-              "name", studentName,
-              "email", studentEmail,
-              "courseId", courseID
-          ));
+    verify(javaMailSender).send(argThat((MimeMessage argument) -> {
+      try {
+        return argument.getRecipients(RecipientType.TO)[0].toString().equals("axelberle@gmail.com") &&
+            argument.getFrom()[0].toString().equals("noreply@working-agile.com") &&
+            argument.getSubject().equals(string) &&
+            argument.getContent() != null;
+      } catch (MessagingException | IOException e) {
+        e.printStackTrace();
+      }
+      return false;
+    }));
     }
 
   @Então("email para admin é enviado com assunto {string}")
   public void email_para_admin_é_enviado_com_assunto(String string) {
-     Mockito.verify(emailSender)
-        .sendEmailToAdmin(string,"/email-templates/email-course-full.vm", Map.of(
-            "courseId", courseID
-        ));
+    verify(javaMailSender).send(argThat((MimeMessage argument) -> {
+      try {
+        return argument.getRecipients(RecipientType.TO)[0].toString().equals("axelberle@gmail.com") &&
+            argument.getFrom()[0].toString().equals("noreply@working-agile.com") &&
+            argument.getSubject().equals(string) &&
+            argument.getContent() != null;
+      } catch (MessagingException | IOException e) {
+        e.printStackTrace();
+      }
+      return false;
+    }));
   }
 
 }

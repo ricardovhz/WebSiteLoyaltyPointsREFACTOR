@@ -3,7 +3,6 @@ package website.loyaltypoints.email;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Properties;
 import javax.mail.Message;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -12,14 +11,18 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("production")
 public class EmailSender {
   private static final Logger LOG = LoggerFactory.getLogger(EmailSender.class);
+
+  private final JavaMailSender mailSender;
+
+  public EmailSender(JavaMailSender javaMailSender) {
+    this.mailSender = javaMailSender;
+  }
 
   public void sendEmail(
       String to, String subject, String templatePath, Map<String, Object> templateContext) {
@@ -32,42 +35,12 @@ public class EmailSender {
         "noreply@working-agile.com", "axelberle@gmail.com", subject, templatePath, templateContext);
   }
 
-  private JavaMailSenderImpl configureEmailSender() {
-    String host = "email-ssl.com.br";
-    String username = "no-reply@working-agile.com";
-    String password = "segredo!";
-    String protocol = "smtps";
-    int port = 465;
-    String auth = "true";
-    String ttlsEnabled = "true";
-    String connectiontimeout = "2000";
-
-    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-
-    mailSender.setHost(host);
-    mailSender.setUsername(username);
-    mailSender.setPassword(password);
-    mailSender.setProtocol(protocol);
-    mailSender.setPort(port);
-
-    Properties props = mailSender.getJavaMailProperties();
-    props.put("mail.transport.protocol", protocol);
-    props.put("mail.smtp.auth", auth);
-    props.put("mail.smtp.starttls.enable", ttlsEnabled);
-    props.put("mail.smtp.connectiontimeout", connectiontimeout);
-    props.put("mail.debug", true);
-
-    return mailSender;
-  }
-
   private void sendEmail(
       String from,
       String to,
       String subject,
       String templatePath,
       Map<String, Object> templateContext) {
-
-    JavaMailSenderImpl mailSender = configureEmailSender();
 
     try {
       MimeMessage message = mailSender.createMimeMessage();
