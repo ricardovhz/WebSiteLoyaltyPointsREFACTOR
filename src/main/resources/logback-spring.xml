@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="true">
 
-	<property name="LOG_PATH" value="/opt/working-agile/spring/logs" />
-
 	<appender name="Console"
 		class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
@@ -12,28 +10,16 @@
 		</layout>
 	</appender>
 
-	<appender name="File-Appender"
-		class="ch.qos.logback.core.FileAppender">
-		<file>${LOG_PATH}/spring.log</file>
-		<encoder>
-			<pattern>%msg%n</pattern>
-			<outputPatternAsHeader>true</outputPatternAsHeader>
-		</encoder>
-	</appender>
-
 	<root level="WARN">
 		<appender-ref ref="Console" />
-		<appender-ref ref="File-Appender" />
 	</root>
 
 	<logger name="website" level="INFO" additivity="false">
 		<appender-ref ref="Console" />
-		<appender-ref ref="File-Appender" />
 	</logger>
 
 	<logger name="org.h2" level="TRACE" additivity="false">
 		<appender-ref ref="Console" />
-		<appender-ref ref="File-Appender" />
 	</logger>
 
 
