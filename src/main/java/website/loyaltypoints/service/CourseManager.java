@@ -120,10 +120,11 @@ public class CourseManager {
         "email", email,
         "courseId", courseId
     );
-    emailSender.sendEmail(email,"Reserva Curso", VELOCITY_TEMPLATE_REPLY, templateContext);
+      final String mailSubject = "Reserva Curso";
+      emailSender.sendEmail(email, mailSubject, VELOCITY_TEMPLATE_REPLY, templateContext);
 
     // Copy to the administrator
-    emailSender.sendEmailToAdmin("Reserva Curso", VELOCITY_TEMPLATE_ADMIN_COPY, templateContext);
+    emailSender.sendEmailToAdmin(mailSubject, VELOCITY_TEMPLATE_ADMIN_COPY, templateContext);
   }
 
   public int getNumberOfSeats(String courseId) {
