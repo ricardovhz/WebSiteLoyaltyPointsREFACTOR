@@ -1,7 +1,5 @@
 package website.loyaltypoints.service;
 
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -11,17 +9,10 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import javax.mail.Message;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
+import website.loyaltypoints.email.EmailSender;
 import website.loyaltypoints.repository.CourseRepository;
 
 @Service
@@ -38,10 +29,12 @@ public class CourseManager {
     int courseId;
 
     private final CourseRepository courseRepository;
+    private final EmailSender emailSender;
 
-    public CourseManager(CourseRepository courseRepository) {
+    public CourseManager(CourseRepository courseRepository, EmailSender emailSender) {
         mapCourses = new HashMap<>();
         this.courseRepository = courseRepository;
+        this.emailSender = emailSender;
     }
 
     public int createCourse(String courseName, String courseDate, int numberOfSeats) {
@@ -113,90 +106,27 @@ public class CourseManager {
         } else {
             String reservationId = courseRepository.createReservation(nomeEstudante, emailEstudante,
                 courseId, String.valueOf(LocalDate.now()));
-
             this.numberOfSeats--;
-
-            courseRepository.updateNumberOfSeats(this.courseId,this.numberOfSeats);
-
-            String host = "email-ssl.com.br";
-            String username = "no-reply@working-agile.com";
-            String password = "segredo!";
-            String protocol = "smtps";
-            int port = 465;
-            String auth = "true";
-            String ttlsEnabled = "true";
-            String connectiontimeout = "2000";
-            String adminEmail = "axelberle@gmail.com";
-            String replyToEmail = "contato@working-agile.com";
-            String noReplyToEmail = "noreply@working-agile.com";
-
-            JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-
-            mailSender.setHost(host);
-            mailSender.setUsername(username);
-            mailSender.setPassword(password);
-            mailSender.setProtocol(protocol);
-            mailSender.setPort(port);
-
-            Properties props = mailSender.getJavaMailProperties();
-            props.put("mail.transport.protocol", protocol);
-            props.put("mail.smtp.auth", auth);
-            props.put("mail.smtp.starttls.enable", ttlsEnabled);
-            props.put("mail.smtp.connectiontimeout", connectiontimeout);
-            props.put("mail.debug", true);
-
-            VelocityContext context = new VelocityContext();
-            context.put("name", nomeEstudante);
-            context.put("email", emailEstudante);
-            context.put("courseId", courseId);
-
-            // Message back to the person contacting the organization
-            Template template = Velocity.getTemplate(VELOCITY_TEMPLATE_REPLY);
-            StringWriter writer = new StringWriter();
-            template.merge(context, writer);
-            String velocityHtml = writer.toString();
-
-            try {
-
-                MimeMessage message = mailSender.createMimeMessage();
-
-                message.setFrom(new InternetAddress(replyToEmail));
-                message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailEstudante));
-                message.setSubject("Reserva Curso", StandardCharsets.UTF_8.toString());
-                message.setContent(velocityHtml, "text/html");
-
-                mailSender.send(message);
-
-            } catch (Exception e) {
-                LOG.debug("failed sending reply email to reservation", e);
-            }
-
-            // Copy to the administrator
-            template = Velocity.getTemplate(VELOCITY_TEMPLATE_ADMIN_COPY);
-            writer = new StringWriter();
-            template.merge(context, writer);
-            velocityHtml = writer.toString();
-
-            try {
-
-                MimeMessage message = mailSender.createMimeMessage();
-
-                message.setFrom(new InternetAddress(noReplyToEmail));
-                message.addRecipient(Message.RecipientType.TO, new InternetAddress(adminEmail));
-                message.setSubject("Reserva Curso", StandardCharsets.UTF_8.toString());
-                message.setContent(velocityHtml, "text/html");
-
-                mailSender.send(message);
-
-            } catch (Exception e) {
-                LOG.debug("failed sending reply email to reservation", e);
-            }
-
+            courseRepository.updateNumberOfSeats(this.courseId, this.numberOfSeats);
+            sendReservationEmail(nomeEstudante, emailEstudante);
             return reservationId;
         }
     }
 
-    public int getNumberOfSeats(String courseId) {
+  private void sendReservationEmail(String nomeEstudante, String email) {
+    Map<String, Object> templateContext = Map.of(
+        "name", nomeEstudante,
+        "email", email,
+        "courseId", courseId
+    );
+    emailSender.sendEmail(email,"Reserva Curso", VELOCITY_TEMPLATE_REPLY, templateContext);
+
+    // Copy to the administrator
+    emailSender.sendEmailToAdmin("Reserva Curso", VELOCITY_TEMPLATE_ADMIN_COPY, templateContext);
+
+  }
+
+  public int getNumberOfSeats(String courseId) {
         return mapCourses.get(courseId).getNumberOfSeats();
     }
 
