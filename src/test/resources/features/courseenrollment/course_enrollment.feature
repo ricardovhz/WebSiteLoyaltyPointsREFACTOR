@@ -22,3 +22,4 @@ Funcionalidade: Enrollment (inscrição)
     E o curso nao tem vagas em aberto
     Quando o estudante reserva sua vaga
     Então o estudante nao deve estar reservado
+    E email para admin é enviado com assunto "Curso sem vagas"

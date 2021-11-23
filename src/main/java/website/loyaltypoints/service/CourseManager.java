@@ -20,6 +20,7 @@ public class CourseManager {
     private static final Logger LOG = LoggerFactory.getLogger(CourseManager.class);
     private static final String VELOCITY_TEMPLATE_REPLY = "/email-templates/email-reservation-reply.vm";
     private static final String VELOCITY_TEMPLATE_ADMIN_COPY = "/email-templates/email-reservation-copy-to-admin.vm";
+    private static final String VELOCITY_TEMPLATE_ADMIN_COURSE_FULL = "/email-templates/email-course-full.vm";
 
     private final Map<Integer, Course> mapCourses;
     private String DB_URL = "jdbc:h2:mem:testdbs";
@@ -99,9 +100,9 @@ public class CourseManager {
         }
     }
 
-
     public String createReservation(int courseId, String nomeEstudante, String emailEstudante) throws Exception {
         if (this.numberOfSeats <= 0) {
+            emailSender.sendEmailToAdmin("Curso sem vagas", VELOCITY_TEMPLATE_ADMIN_COURSE_FULL,Map.of("courseId", this.courseId));
             throw new CursoNaoPossueVagasException();
         } else {
             String reservationId = courseRepository.createReservation(nomeEstudante, emailEstudante,
@@ -123,7 +124,6 @@ public class CourseManager {
 
     // Copy to the administrator
     emailSender.sendEmailToAdmin("Reserva Curso", VELOCITY_TEMPLATE_ADMIN_COPY, templateContext);
-
   }
 
   public int getNumberOfSeats(String courseId) {

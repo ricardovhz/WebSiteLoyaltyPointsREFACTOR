@@ -129,5 +129,12 @@ public class CourseEnrollmentSteps {
           ));
     }
 
+  @Então("email para admin é enviado com assunto {string}")
+  public void email_para_admin_é_enviado_com_assunto(String string) {
+     Mockito.verify(emailSender)
+        .sendEmailToAdmin(string,"/email-templates/email-course-full.vm", Map.of(
+            "courseId", courseID
+        ));
+  }
 
 }
