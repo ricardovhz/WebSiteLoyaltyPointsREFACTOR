@@ -28,6 +28,7 @@ public class CourseEnrollmentSteps {
     String studentEmail;
     int courseID;
     String reservationId;
+    boolean serverError;
 
     @Dado("um estudante que quer participar de um curso")
     public void um_estudante_que_quer_participar_de_um_curso() {
@@ -54,9 +55,13 @@ public class CourseEnrollmentSteps {
 
         NewReservationRequestDTO reservationDTO = new NewReservationRequestDTO(courseID, studentName, studentEmail);
 
-        NewReservationResponseDTO responseDTO = restTemplate.postForObject(apiCourseReserve, reservationDTO, NewReservationResponseDTO.class);
-        reservationId = responseDTO.reservationId;
-        Assert.assertNotNull(reservationId);
+        try {
+            NewReservationResponseDTO responseDTO = restTemplate.postForObject(apiCourseReserve, reservationDTO, NewReservationResponseDTO.class);
+            reservationId = responseDTO.reservationId;
+            Assert.assertNotNull(reservationId);
+        } catch (Exception e) {
+            serverError = true;
+        }
     }
 
     @Então("a vaga deveria estar marcada para esperando pagamento")
@@ -81,6 +86,21 @@ public class CourseEnrollmentSteps {
 
         Assert.assertNotNull(course);
         Assertions.assertEquals(expectedNunberOfSeats, course.getNumberOfSeats());
+    }
+
+    @Dado("o curso nao tem vagas em aberto")
+    public void o_curso_nao_tem_vagas_em_aberto() {
+        String pathCreateCourse = "/api/course/create";
+        String apiCreateCourse = SERVER_ADDRESS + port + pathCreateCourse;
+
+        CourseDTO courseDTO = new CourseDTO("A-CSD Setembro", "28-9-2021", 0);
+
+        courseID = restTemplate.postForObject(apiCreateCourse, courseDTO, Integer.class);
+    }
+
+    @Então("o estudante nao deve estar reservado")
+    public void o_estudando_nao_deve_estar_reservado() {
+        Assertions.assertTrue(this.serverError);
     }
 
 }
