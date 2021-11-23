@@ -1,42 +1,47 @@
 package website.loyaltypoints.service;
 
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import javax.mail.Message;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
-
-import javax.mail.Message;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import website.loyaltypoints.repository.CourseRepository;
 
 @Service
 public class CourseManager {
+    private static final Logger LOG = LoggerFactory.getLogger(CourseManager.class);
+    private static final String VELOCITY_TEMPLATE_REPLY = "/email-templates/email-reservation-reply.vm";
+    private static final String VELOCITY_TEMPLATE_ADMIN_COPY = "/email-templates/email-reservation-copy-to-admin.vm";
 
     private final Map<Integer, Course> mapCourses;
-    private static final Logger LOG = LoggerFactory.getLogger(CourseManager.class);
     private String DB_URL = "jdbc:h2:mem:testdbs";
     private String USER = "sa";
     private String PASS = "";
     int numberOfSeats;
     int courseId;
 
-    private static final String VELOCITY_TEMPLATE_REPLY = "/email-templates/email-reservation-reply.vm";
-    private static final String VELOCITY_TEMPLATE_ADMIN_COPY = "/email-templates/email-reservation-copy-to-admin.vm";
+    private final CourseRepository courseRepository;
 
-    public CourseManager() {
-        mapCourses = new HashMap<Integer, Course>();
+    public CourseManager(CourseRepository courseRepository) {
+        mapCourses = new HashMap<>();
+        this.courseRepository = courseRepository;
     }
 
     public int createCourse(String courseName, String courseDate, int numberOfSeats) {
@@ -101,46 +106,17 @@ public class CourseManager {
         }
     }
 
+
     public String createReservation(int courseId, String nomeEstudante, String emailEstudante) throws Exception {
         if (this.numberOfSeats <= 0) {
             throw new CursoNaoPossueVagasException();
         } else {
-            String sql = "INSERT INTO TBL_RESERVATIONS(studentName,studentEmail,courseId,reservationDate) VALUES (?, ?, ?, ?)";
-            String reservationId = "";
-            try (
-                    Connection connection = DriverManager.getConnection(DB_URL, USER, PASS);
-                    PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ) {
+            String reservationId = courseRepository.createReservation(nomeEstudante, emailEstudante,
+                courseId, String.valueOf(LocalDate.now()));
 
-                LOG.debug("Inserting records into the table...");
-                statement.setString(1, nomeEstudante);
-                statement.setString(2, emailEstudante);
-                statement.setInt(3, this.courseId);
-                statement.setString(4, String.valueOf(java.time.LocalDate.now()));
-                statement.executeUpdate();
+            this.numberOfSeats--;
 
-                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        reservationId = String.valueOf(generatedKeys.getLong(1));
-                    } else {
-                        throw new RuntimeException("Creating reservation failed, no ID obtained.");
-                    }
-                }
-
-            } catch (SQLException e) {
-                throw new RuntimeException("Creating reservation failed, conection failed", e);
-            }
-
-            try (
-                    Connection connection = DriverManager.getConnection(DB_URL, USER, PASS);
-                    Statement stmt = connection.createStatement();
-            ) {
-                this.numberOfSeats--;
-                String sqlUpdate = String.format("UPDATE TBL_COURSES SET numberOfSeats = '%s' WHERE ID = '%s'", this.numberOfSeats, courseId);
-                stmt.executeUpdate(sqlUpdate);
-            } catch (SQLException e) {
-                throw new RuntimeException("Creating reservation failed, conection failed", e);
-            }
+            courseRepository.updateNumberOfSeats(this.courseId,this.numberOfSeats);
 
             String host = "email-ssl.com.br";
             String username = "no-reply@working-agile.com";

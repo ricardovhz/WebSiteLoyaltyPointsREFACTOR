@@ -3,7 +3,12 @@ package website.loyaltypoints.api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import website.loyaltypoints.service.Course;
 import website.loyaltypoints.service.CourseManager;
 import website.loyaltypoints.service.Reservation;
@@ -17,7 +22,11 @@ public class CourseController {
     @Value("${app.version}")
     String appVersion;
 
-    static CourseManager courseManager = new CourseManager();
+    private final CourseManager courseManager;
+
+    public CourseController(CourseManager courseManager) {
+        this.courseManager = courseManager;
+    }
 
     @PostMapping
     @RequestMapping("/create")
