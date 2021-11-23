@@ -13,6 +13,8 @@ Funcionalidade: Enrollment (inscrição)
     Quando o estudante reserva sua vaga
     Então a vaga deveria estar marcada para esperando pagamento
     E o curso deveria ter somente 4 vagas em aberto
+    E email para estudante é enviado com assunto "Reserva Curso"
+    E email de copia para admin é enviado com assunto "Reserva Curso"
 
   Cenário: Estudante nao reserva uma vaga em um curso sem vagas em aberto
 

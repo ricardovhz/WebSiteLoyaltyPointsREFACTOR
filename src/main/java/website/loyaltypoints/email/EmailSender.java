@@ -12,10 +12,12 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("production")
 public class EmailSender {
   private static final Logger LOG = LoggerFactory.getLogger(EmailSender.class);
 

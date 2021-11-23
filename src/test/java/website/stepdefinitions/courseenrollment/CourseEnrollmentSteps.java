@@ -3,14 +3,17 @@ package website.stepdefinitions.courseenrollment;
 import io.cucumber.java.pt.Dado;
 import io.cucumber.java.pt.Então;
 import io.cucumber.java.pt.Quando;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
 import website.loyaltypoints.api.CourseDTO;
 import website.loyaltypoints.api.NewReservationRequestDTO;
 import website.loyaltypoints.api.NewReservationResponseDTO;
+import website.loyaltypoints.email.EmailSender;
 import website.loyaltypoints.service.Course;
 import website.loyaltypoints.service.Reservation;
 
@@ -18,6 +21,9 @@ public class CourseEnrollmentSteps {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private EmailSender emailSender;
 
     @LocalServerPort
     String port;
@@ -102,5 +108,26 @@ public class CourseEnrollmentSteps {
     public void o_estudando_nao_deve_estar_reservado() {
         Assertions.assertTrue(this.serverError);
     }
+
+  @Então("email para estudante é enviado com assunto {string}")
+  public void email_para_estudante_é_enviado_com_assunto(String string) {
+        Mockito.verify(emailSender)
+            .sendEmail(studentEmail, string,"/email-templates/email-reservation-reply.vm", Map.of(
+                "name", studentName,
+                "email", studentEmail,
+                "courseId", courseID
+            ));
+  }
+
+  @Então("email de copia para admin é enviado com assunto {string}")
+  public void email_de_copia_para_admin_é_enviado_com_assunto(String string) {
+      Mockito.verify(emailSender)
+          .sendEmailToAdmin(string,"/email-templates/email-reservation-copy-to-admin.vm", Map.of(
+              "name", studentName,
+              "email", studentEmail,
+              "courseId", courseID
+          ));
+    }
+
 
 }
